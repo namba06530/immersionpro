@@ -7,7 +7,7 @@ class Question:
         self.choix = choix
         self.bonne_reponse = bonne_reponse
 
-    def FromData(data):
+    def from_data(data):
         choix = [i[0] for i in data["choix"]]
         bonne_reponse = [i[0] for i in data['choix'] if i[1]]
         if len(bonne_reponse) != 1:
@@ -15,8 +15,8 @@ class Question:
         q = Question(data['titre'], choix, bonne_reponse[0])
         return q
 
-    def poser(self):
-        print("QUESTION")
+    def poser(self, num_question, nb_questions):
+        print(f"QUESTION {num_question} / {nb_questions}")
         print("  " + self.titre)
         for i in range(len(self.choix)):
             print("  ", i+1, "-", self.choix[i])
@@ -46,48 +46,42 @@ class Question:
         return Question.demander_reponse_numerique_utlisateur(min, max)
     
 class Questionnaire:
-    def __init__(self, questions):
+    def __init__(self, questions, categorie, titre, difficulte):
         self.questions = questions
+        self.categorie = categorie
+        self.titre = titre
+        self.difficulte = difficulte
+
+    def from_data(data):
+        questionnaire = data['questions']
+        questions = [Question.from_data(i) for i in questionnaire]
+
+        return Questionnaire(questions, data['categorie'], data['titre'], data['difficulte'])
 
     def lancer(self):
         score = 0
-        for question in self.questions:
-            if question.poser():
+        nb_questions = len(self.questions)
+
+        print("----------")
+        print("QUESTIONNAIRE: " + self.titre)
+        print("  Categorie: " + self.categorie)
+        print("  Difficulte: " + self.difficulte)
+        print("  Nombre de question: " + str(nb_questions))
+        print("----------")
+
+        for i in range(nb_questions):
+            question = self.questions[i]
+            if question.poser(i+1, nb_questions):
                 score += 1
         print("Score final :", score, "sur", len(self.questions))
         return score
 
 
-"""questionnaire = (
-    ("Quelle est la capitale de la France ?", ("Marseille", "Nice", "Paris", "Nantes", "Lille"), "Paris"), 
-    ("Quelle est la capitale de l'Italie ?", ("Rome", "Venise", "Pise", "Florence"), "Rome"),
-    ("Quelle est la capitale de la Belgique ?", ("Anvers", "Bruxelles", "Bruges", "Liège"), "Bruxelles")
-                )
-
-lancer_questionnaire(questionnaire)"""
-
-# q1 = Question("Quelle est la capitale de la France ?", ("Marseille", "Nice", "Paris", "Nantes", "Lille"), "Paris")
-# q1.poser()
-
-# data = (("Marseille", "Nice", "Paris", "Nantes", "Lille"), "Paris", "Quelle est la capitale de la France ?")
-# q = Question.FromData(data)
-# print(q.__dict__)
-
-"""Questionnaire(
-    (
-    Question("Quelle est la capitale de la France ?", ("Marseille", "Nice", "Paris", "Nantes", "Lille"), "Paris"), 
-    Question("Quelle est la capitale de l'Italie ?", ("Rome", "Venise", "Pise", "Florence"), "Rome"),
-    Question("Quelle est la capitale de la Belgique ?", ("Anvers", "Bruxelles", "Bruges", "Liège"), "Bruxelles")
-    )
-).lancer()"""
 
 file = open("arts_museedulouvre_debutant.json", "r")
 json_data = file.read()
 file.close()
 data = json.loads(json_data)
-questionnaire = data['questions']
 
-
-q = Question.FromData(questionnaire[0])
-q.poser()
+Questionnaire.from_data(data).lancer()
 
